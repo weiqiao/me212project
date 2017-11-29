@@ -9,6 +9,11 @@ cmd "1-robot" {
     host = "localhost";
 }
 
+cmd "1-frames" {
+    exec = "roslaunch me212bot frames.launch";
+    host = "localhost";
+}
+
 cmd "1-robot-arm-virtual" {
     exec = "roslaunch me212arm me212arm.launch real_arm:=false";
     host = "localhost";
@@ -31,8 +36,18 @@ cmd "2-rviz" {
     host = "localhost";
 }
 
+cmd "3-kinect" {
+    exec = "roslaunch freenect_launch freenect.launch depth_registration:=true";
+    host = "localhost";
+}
+
 cmd "3-tf" {
     exec = "rosrun tf static_transform_publisher 0 0 0 0 0 0 /map /robot_base 100";
+    host = "localhost";
+}
+
+cmd "4-apriltag" {
+    exec = "roslaunch apriltags apriltags.launch";
     host = "localhost";
 }
 
@@ -56,6 +71,50 @@ cmd "4.4-planning-rrt" {
     host = "localhost";
 }
 
+cmd "5-robot" {
+    exec = "rosrun me212bot me212bot_node.py";
+    host = "localhost";
+}
+
+cmd "6-navigation" {
+    exec = "rosrun me212bot apriltag_navi.py";
+    host = "localhost";
+}
+
+script "run-lab3" {
+    start cmd "0-roscore";
+    wait ms 1000;
+    start cmd "1-frames";
+    wait ms 500;
+    start cmd "2-rviz";
+    start cmd "3-kinect";
+    start cmd "4-apriltag";
+    start cmd "5-robot";
+}
+
+cmd "2.1-rviz" {
+    exec = "roslaunch me212cv viz.launch";
+    host = "localhost";
+}
+
+cmd "3-cameratf" {
+    exec = "roslaunch me212cv frames.launch";
+    host = "localhost";
+}
+
+cmd "4-object-detection" {
+    exec = "rosrun me212cv object_detection.py";
+    host = "localhost";
+}
+
+script "run-object-detection"{
+    start cmd "0-roscore";
+    wait ms 1000;
+    start cmd "3-kinect";
+    start cmd "2.1-rviz";
+    start cmd "3-cameratf";
+    start cmd "4-object-detection";
+}
 
 
 script "run-virtual" {

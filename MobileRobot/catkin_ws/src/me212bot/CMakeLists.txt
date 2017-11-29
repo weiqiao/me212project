@@ -11,15 +11,15 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
 )
 
-catkin_python_setup()
 ################################################
 ## Declare ROS messages, services and actions ##
 ################################################
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#  FILES
-# )
+ add_message_files(
+   FILES
+   WheelCmdVel.msg
+ )
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -36,10 +36,10 @@ catkin_python_setup()
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
+generate_messages(
 #   DEPENDENCIES
 #   geometry_msgs#   std_msgs
-# )
+)
 
 
 

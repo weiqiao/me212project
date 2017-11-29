@@ -38,6 +38,7 @@ cy = msg.P[6]
 def main():
     useHSV   = True
     useDepth = True
+    '''
     if not useHSV:
         # Task 1
         
@@ -55,13 +56,14 @@ def main():
             #    Subscribe to RGB images
             rospy.Subscriber('/camera/rgb/image_rect_color', Image, rosHSVProcessCallBack)
         else:
-            # Task 3: Use Kinect depth data
-            #    Subscribe to both RGB and Depth images with a Synchronizer
-            image_sub = message_filters.Subscriber("/camera/rgb/image_rect_color", Image)
-            depth_sub = message_filters.Subscriber("/camera/depth_registered/image", Image)
+    '''
+    # Task 3: Use Kinect depth data
+    #    Subscribe to both RGB and Depth images with a Synchronizer
+    image_sub = message_filters.Subscriber("/camera/rgb/image_rect_color", Image)
+    depth_sub = message_filters.Subscriber("/camera/depth_registered/image", Image)
 
-            ts = message_filters.ApproximateTimeSynchronizer([image_sub, depth_sub], 10, 0.5)
-            ts.registerCallback(rosRGBDCallBack)
+    ts = message_filters.ApproximateTimeSynchronizer([image_sub, depth_sub], 10, 0.5)
+    ts.registerCallback(rosRGBDCallBack)
 
     rospy.spin()
 
@@ -141,13 +143,15 @@ def rosRGBDCallBack(rgb_data, depth_data):
 
     contours, mask_image = HSVObjectDetection(cv_image, toPrint = False)
 
+    print contours
     for cnt in contours:
         xp,yp,w,h = cv2.boundingRect(cnt)
+        # print 'xp', xp, 'yp', yp
         
         # Get depth value from depth image, need to make sure the value is in the normal range 0.1-10 meter
         if not math.isnan(cv_depthimage2[int(yp)][int(xp)]) and cv_depthimage2[int(yp)][int(xp)] > 0.1 and cv_depthimage2[int(yp)][int(xp)] < 10.0:
             zc = cv_depthimage2[int(yp)][int(xp)]
-            #print 'zc', zc
+            # print 'zc', zc
         else:
             continue
             
@@ -173,11 +177,14 @@ def showImageInCVWindow(cv_image, mask_erode_image, mask_image):
     cv2.line(cv_image, (325, 240), (315, 240), (255,0,0))
     
     # Show the images
+    '''
+    print 'open image'
     cv2.imshow('OpenCV_Original', cv_image)
     cv2.imshow('OpenCV_Mask_Erode', mask_erode_image)
     cv2.imshow('OpenCV_Mask_Dilate', mask_image)
     cv2.imshow('OpenCV_View', res)
     cv2.waitKey(3)
+    '''
 
 # Create a pyramid using 4 triangles
 def showPyramid(xp, yp, zc, w, h):
