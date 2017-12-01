@@ -107,6 +107,11 @@ cmd "4-object-detection" {
     host = "localhost";
 }
 
+cmd "6-run-measure" {
+    exec = "rosrun me212bot measure.py";
+    host = "localhost";
+}
+
 script "run-object-detection"{
     start cmd "0-roscore";
     wait ms 1000;
@@ -116,6 +121,26 @@ script "run-object-detection"{
     start cmd "4-object-detection";
 }
 
+cmd "1-navi1-frames" {
+    exec = "roslaunch me212bot navi1.launch";
+    host = "localhost";
+}
+
+cmd "6-run-nav1" {
+    exec = "rosrun me212bot navi1.py";
+    host = "localhost";
+}
+
+script "run-navi1" {
+    start cmd "0-roscore";
+    wait ms 1000;
+    start cmd "1-navi1-frames";
+    wait ms 500;
+    start cmd "2.1-rviz";
+    start cmd "3-kinect";
+    start cmd "4-apriltag";
+    start cmd "5-robot";
+}
 
 script "run-virtual" {
     start cmd "0-roscore";

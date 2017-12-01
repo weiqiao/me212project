@@ -1,0 +1,76 @@
+apriltag id 6
+robot_position2d [1.4022972849198387, 0.21515485422442535]
+robot_yaw -3.12879778696
+
+first turn point
+apriltag id 6
+robot_position2d [1.0299576484083888, 0.28290634189330466]
+robot_yaw -2.9980705742
+apriltag id 2
+robot_position2d [0.30012979848708715, -0.27594909956205893]
+robot_yaw 1.51629176634
+
+after first turn
+
+lower bound
+
+apriltag id 4
+robot_position2d [2.3784574997054184, 0.8368521355232235]
+robot_yaw -2.750799362
+
+upper bound
+
+apriltag id 8
+robot_position2d [1.0650500083471086, -0.6324082398439679]
+robot_yaw 3.12273770173
+apriltag id 4
+robot_position2d [2.299482033316445, 0.8555969830638555]
+robot_yaw -3.02623828655
+
+
+bef fst r1
+apriltag id 6
+robot_position2d [0.5164529905636881, 0.06904039439686369]
+robot_yaw 2.97803150332
+
+lower bound
+apriltag id 4
+robot_position2d [1.8468930209619443, 0.8832948489080257]
+robot_yaw -2.74751754349
+
+
+upper bound
+apriltag id 4
+robot_position2d [2.034977723193016, 0.4264562056708993]
+robot_yaw -3.11005884449
+
+
+taskb first finishing point/start first turn
+apriltag id 4
+ robot_position2d [0.37490110629205653, 0.178152750898203]
+robot_yaw 3.01123496753
+
+taskb after first turn
+apriltag id 2
+robot_position2d [1.8773154191023378, 0.7559868204110376]
+robot_yaw 3.11414034354
+
+start second turn position
+apriltag id 2
+robot_position2d [1.3756625994917409, 0.4379586292980258]
+robot_yaw 3.03577581361
+
+after  2 turn lower bound
+apriltag id 7
+robot_position2d [1.641247990218348, 0.2539348749544594]
+robot_yaw -2.98519502905
+
+upper
+apriltag id 7
+robot_position2d [1.6579510333419532, 0.34602575948362047]
+robot_yaw -2.89449464039
+
+taskb stopping point
+apriltag id 7
+robot_position2d [0.23063142520447227, -0.07476481721243862]
+robot_yaw 3.08358068172
