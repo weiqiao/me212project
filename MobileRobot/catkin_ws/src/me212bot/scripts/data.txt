@@ -1,3 +1,34 @@
+route 1
+before first turn
+
+apriltag id 6
+robot_position2d [0.37726174723874184, 0.08941478537351027]
+robot_yaw 3.07564379103
+
+
+after
+
+lower bound
+apriltag id 4
+robot_position2d [2.1369200013507057, -0.45421843690206737]
+robot_yaw 2.94962559416
+
+upper bound
+apriltag id 4
+robot_position2d [2.0076142736761944, 0.3412738886326708]
+robot_yaw 3.13676019289
+
+
+
+
+
+
+
+
+
+
+
+
 apriltag id 6
 robot_position2d [1.4022972849198387, 0.21515485422442535]
 robot_yaw -3.12879778696

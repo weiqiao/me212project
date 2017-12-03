@@ -131,6 +131,11 @@ cmd "6-run-nav1" {
     host = "localhost";
 }
 
+cmd "6-run-navigation_with_object_detection" {
+    exec = "rosrun me212bot navigation_with_object_detection.py";
+    host = "localhost";
+}
+
 script "run-navi1" {
     start cmd "0-roscore";
     wait ms 1000;

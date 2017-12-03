@@ -30,6 +30,7 @@ def main():
 ## msg handling function (Need to modify)
 def cmdvel_callback(msg):  
     ## 2. Send msg.desiredWV_R and msg.desiredWV_L to Arduino.
+    # strCmd = '%f, %f, %f\n' % (msg.desiredWV_R, msg.desiredWV_L, msg.desiredGripperPos)
     strCmd = '%f, %f\n' % (msg.desiredWV_R, msg.desiredWV_L)
     serialComm.write(strCmd)
     
