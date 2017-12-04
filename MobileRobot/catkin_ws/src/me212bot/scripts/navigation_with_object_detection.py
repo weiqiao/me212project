@@ -85,8 +85,11 @@ class ApriltagNavigator():
     ## route 0 (turn right early)
     def navi_loop(self):
         first_turn_point_id6_route0 = [0.95, 0.28, -3.00] # apriltag id = 6
-        stop_first_turn_lo = [2.38, 0.84, -2.75] # apriltag id = 4
-        stop_first_turn_up = [2.30, 0.86, -3.03] # apriltag id = 4
+        first_turn_point_id6_route1 = [0.38, 0.09, 3.076] # apriltag id = 6
+        stop_first_turn_lo_route0 = [2.38, 0.84, -2.75] # apriltag id = 4
+        stop_first_turn_up_route0 = [2.30, 0.86, -3.03] # apriltag id = 4
+        stop_first_turn_lo_route1 = [2.14, -0.45, 2.95] # apriltag id = 4
+        stop_first_turn_up_route1 = [2.01, 0.34, 3.10] # apriltag id = 4
         generic_target_pose2d = [0.4, 0, np.pi]
                     
         #target_pose2d = [0.25, 0, np.pi]
@@ -97,9 +100,11 @@ class ApriltagNavigator():
         arrived = False
         arrived_position = False
         self.print_id = -1
+        
+        self.idx6cnt = 0
         while not rospy.is_shutdown() :
-            print 'self.idx',self.idx
-            if self.idx >= 6:
+            # print 'self.idx',self.idx
+            if self.idx >= 7:
                 break 
             if self.idx <= 0: # haven't found obstacle
                 rospy.sleep(2)
@@ -112,14 +117,23 @@ class ApriltagNavigator():
                 else:
                     target_pose2d = first_turn_point_id6_route1
             elif self.idx == 2:
-                target_pose2d = stop_first_turn_lo
+                target_pose2d = stop_first_turn_lo_route0
             else:
                 target_pose2d = generic_target_pose2d
             
             # 1. get robot pose
             robot_pose3d = lookupTransform(self.lr, '/map', '/robot_base')
-
-
+            
+            
+            if self.idx == 6:
+                if self.idx6cnt < 4:
+                    wcv.desiredWV_R = 0.1
+                    wcv.desiredWV_L = 0.1
+                    self.idx6cnt = self.idx6cnt + 1
+                else:
+                    self.idx = self.idx + 1
+                
+            # idx == 1, start from initial position
             if self.idx == 1 and self.detection_id == 6:
                 if robot_pose3d is None:
                     print_id = 0
@@ -151,9 +165,10 @@ class ApriltagNavigator():
                     self.idx = self.idx + 1
                     arrived = False
                     arrived_position = False
-                    rate.sleep()
+                    rospy.sleep(1)
                     
 
+            # idx == 3 or 5, go to human or target
             elif (self.idx == 3 and self.detection_id == 4) or (self.idx == 5 and self.detection_id == 3):
                 if robot_pose3d is None:
                     print_id = 0
@@ -225,15 +240,15 @@ class ApriltagNavigator():
                         if print_id != self.print_id:
                             self.print_id = print_id
                             print 'Case 2.4.1  Turn right'
-                        wcv.desiredWV_R = -0.1
-                        wcv.desiredWV_L = 0.1
+                        wcv.desiredWV_R = -0.05
+                        wcv.desiredWV_L = 0.05
                     else:
                         print_id = 242
                         if print_id != self.print_id:
                             self.print_id = print_id
                             print 'Case 2.4.2  Turn left'
-                        wcv.desiredWV_R = 0.1
-                        wcv.desiredWV_L = -0.1
+                        wcv.desiredWV_R = 0.05
+                        wcv.desiredWV_L = -0.05
                         
                 self.velcmd_pub.publish(wcv)  
                 
@@ -242,51 +257,85 @@ class ApriltagNavigator():
                     self.idx = self.idx + 1
                     arrived = False
                     arrived_position = False
-                    rate.sleep()
-                    rate.sleep()
+                    rospy.sleep(3)
                     
 
                 
-                
+            # idx == 2, turn right and go to human
             elif self.idx == 2:
-                if robot_pose3d is not None:
-                    robot_position2d  = robot_pose3d[0:2]
-                    target_position2d = target_pose2d[0:2]
+                if self.route_idx == 0: # route 0: turn right early, smaller degrees
+                    if robot_pose3d is not None:
+                        robot_position2d  = robot_pose3d[0:2]
+                        target_position2d = target_pose2d[0:2]
+                        
+                        robot_yaw    = tfm.euler_from_quaternion(robot_pose3d[3:7]) [2]
+                        robot_pose2d = robot_position2d + [robot_yaw]
+                    if (robot_pose3d is None) or (self.detection_id != 4) or (self.detection_id == 4 and robot_yaw > stop_first_turn_lo_route0[2]):
+                        print_id = 2001
+                        if print_id != self.print_id:
+                            self.print_id = print_id
+                            print 'Turn right slowly'
+                        wcv.desiredWV_R = -0.05 
+                        wcv.desiredWV_L = 0.05
+                        '''
+                    elif robot_yaw < stop_first_turn_up[2]:
+                        print_id = 2002
+                        if print_id != self.print_id:
+                            self.print_id = print_id
+                            print 'Turn left slowly'
+                        wcv.desiredWV_R = 0.05 
+                        wcv.desiredWV_L = -0.05
+                        '''
+                    else:
+                        print_id = 2003
+                        if print_id != self.print_id:
+                            self.print_id = print_id
+                            print 'idx2 finished'
+                        wcv.desiredWV_R = 0
+                        wcv.desiredWV_L = 0
+                        arrived = True
+                else: # route 1: turn right late, larger degrees, near 90 degrees.
+                    if robot_pose3d is not None:
+                        robot_position2d  = robot_pose3d[0:2]
+                        target_position2d = target_pose2d[0:2]
+                        
+                        robot_yaw    = tfm.euler_from_quaternion(robot_pose3d[3:7]) [2]
+                        robot_pose2d = robot_position2d + [robot_yaw]
+                    if (robot_pose3d is None) or (self.detection_id != 4) or (self.detection_id == 4 and (robot_yaw < stop_first_turn_lo_route1[2] or robot_yaw > stop_first_turn_up_route1[2])): 
+                        # make it between 2.95 and 3.10
+                        print_id = 2001
+                        if print_id != self.print_id:
+                            self.print_id = print_id
+                            print 'Turn right slowly'
+                        wcv.desiredWV_R = -0.05 
+                        wcv.desiredWV_L = 0.05
+                        '''
+                    elif robot_yaw < stop_first_turn_up[2]:
+                        print_id = 2002
+                        if print_id != self.print_id:
+                            self.print_id = print_id
+                            print 'Turn left slowly'
+                        wcv.desiredWV_R = 0.05 
+                        wcv.desiredWV_L = -0.05
+                        '''
+                    else:
+                        print_id = 2003
+                        if print_id != self.print_id:
+                            self.print_id = print_id
+                            print 'idx2 finished'
+                        wcv.desiredWV_R = 0
+                        wcv.desiredWV_L = 0
+                        arrived = True
                     
-                    robot_yaw    = tfm.euler_from_quaternion(robot_pose3d[3:7]) [2]
-                    robot_pose2d = robot_position2d + [robot_yaw]
-                if (robot_pose3d is None) or (self.detection_id != 4) or (self.detection_id == 4 and robot_yaw > stop_first_turn_lo[2]):
-                    print_id = 2001
-                    if print_id != self.print_id:
-                        self.print_id = print_id
-                        print 'Turn right slowly'
-                    wcv.desiredWV_R = -0.05 
-                    wcv.desiredWV_L = 0.05
-                    '''
-                elif robot_yaw < stop_first_turn_up[2]:
-                    print_id = 2002
-                    if print_id != self.print_id:
-                        self.print_id = print_id
-                        print 'Turn left slowly'
-                    wcv.desiredWV_R = 0.05 
-                    wcv.desiredWV_L = -0.05
-                    '''
-                else:
-                    print_id = 2003
-                    if print_id != self.print_id:
-                        self.print_id = print_id
-                        print 'idx2 finished'
-                    wcv.desiredWV_R = 0
-                    wcv.desiredWV_L = 0
-                    arrived = True
                     
                 self.velcmd_pub.publish(wcv)  
                 if arrived:
                     self.idx = self.idx + 1
                     arrived = False
                     arrived_position = False
-                    rate.sleep()
+                    rospy.sleep(1)
             
+            # idx == 4, turn left and go to target
             elif self.idx == 4:
                 if self.detection_id == 3:
                     print_id = 4002
@@ -310,7 +359,7 @@ class ApriltagNavigator():
                     self.idx = self.idx + 1
                     arrived = False
                     arrived_position = False
-                    rate.sleep()
+                    rospy.sleep(1)
                 
             rate.sleep()
             
@@ -320,34 +369,65 @@ class ApriltagNavigator():
     def rosRGBDCallBack(self, rgb_data, depth_data):
         if self.idx != 0:
             return
-            
+        
         try:
             cv_image = self.cv_bridge.imgmsg_to_cv2(rgb_data, "bgr8")
             cv_depthimage = self.cv_bridge.imgmsg_to_cv2(depth_data, "32FC1")
             cv_depthimage2 = np.array(cv_depthimage, dtype=np.float32)
         except CvBridgeError as e:
             print(e)
-
-        contours, mask_image = self.HSVObjectDetection(cv_image, toPrint = False)
-
-        for cnt in contours:
-            xp,yp,w,h = cv2.boundingRect(cnt)
-            # print 'xp', xp, 'yp', yp
+        
+        if self.idx == 0:
+            contours_purple, mask_purple, contours_green, mask_green = self.HSVObjectDetection_route_detection(cv_image, toPrint = False)
             
-            # Get depth value from depth image, need to make sure the value is in the normal range 0.1-10 meter
-            if not math.isnan(cv_depthimage2[int(yp)][int(xp)]) and cv_depthimage2[int(yp)][int(xp)] > 0.1 and cv_depthimage2[int(yp)][int(xp)] < 10.0:
-                zc = cv_depthimage2[int(yp)][int(xp)]
-                # print 'zc', zc
-            else:
-                continue
+            purple_obstacle_detected = False
+            green_obstacle_detected  = False
+            
+            for cnt in contours_purple:
+                xp,yp,w,h = cv2.boundingRect(cnt)
+                centerx, centery = xp+w/2, yp+h/2
                 
-            centerx, centery = xp+w/2, yp+h/2
-            cv2.rectangle(cv_image,(xp,yp),(xp+w,yp+h),[0,255,255],2)
+                # Get depth value from depth image, need to make sure the value is in the range 0.5-2 meter (add constraint about (xp and yp) or (w and h))
+                if not math.isnan(cv_depthimage2[int(yp)][int(xp)]) and cv_depthimage2[int(yp)][int(xp)] >= 0.5 and cv_depthimage2[int(yp)][int(xp)] <= 2.0 \
+                    and centerx >= 200 and centerx <= 390 and centery >= 330 and centery <= 420:
+                    purple_obstacle_detected = True
+                    break
+                    # zc = cv_depthimage2[int(yp)][int(xp)]
+                    # print 'zc', zc
+                else:
+                    continue
+                    
+                # centerx, centery = xp+w/2, yp+h/2
+                # cv2.rectangle(cv_image,(xp,yp),(xp+w,yp+h),[0,255,255],2)
+                # self.showPyramid(centerx, centery, zc, w, h)
+                
+            for cnt in contours_green:
+                xp,yp,w,h = cv2.boundingRect(cnt)
+                centerx, centery = xp+w/2, yp+h/2
+                
+                # Get depth value from depth image, need to make sure the value is in the range 0.5-2 meter (add constraint about (xp and yp) or (w and h))
+                if not math.isnan(cv_depthimage2[int(yp)][int(xp)]) and cv_depthimage2[int(yp)][int(xp)] >= 0.5 and cv_depthimage2[int(yp)][int(xp)] <= 1.5 \
+                    and centerx >= 450 and centerx <= 650 and centery >= 340 and centery <= 440:
+                    green_obstacle_detected = True
+                    break
+                    # zc = cv_depthimage2[int(yp)][int(xp)]
+                    # print 'zc', zc
+                else:
+                    continue
+            print 'purple_obstacle_detected', purple_obstacle_detected, 'green_obstacle_detected', green_obstacle_detected
             
-            self.showPyramid(centerx, centery, zc, w, h)
+            if purple_obstacle_detected and (not green_obstacle_detected):
+                self.route_idx = 0
+                self.idx = 1
+            
+            elif (not purple_obstacle_detected) and green_obstacle_detected:
+                self.route_idx = 1
+                self.idx = 1
+            rospy.sleep(2)
 
+            
     # object detection code
-    def HSVObjectDetection(self, cv_image, toPrint = True):
+    def HSVObjectDetection_route_detection(self, cv_image, toPrint = True):
         hsv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
         
         '''
@@ -378,21 +458,35 @@ class ApriltagNavigator():
         mask_eroded         = cv2.erode(mask, None, iterations = 3)  ##
         mask_eroded_dilated = cv2.dilate(mask_eroded, None, iterations = 10)  ##
         '''
-        
+        '''
         # yellow 30
         lower_yellow = np.array([25, 50, 50])
         upper_yellow = np.array([35, 255, 255])
         mask = cv2.inRange(hsv_image, lower_yellow, upper_yellow)   ##
         mask_eroded         = cv2.erode(mask, None, iterations = 3)  ##
         mask_eroded_dilated = cv2.dilate(mask_eroded, None, iterations = 10)  ##
-
+        '''
+        
+        # try to detect purple or green obstacle
+        lower_purple = np.array([120, 50, 50])
+        upper_purple = np.array([140, 255, 255])
+        mask_purple = cv2.inRange(hsv_image, lower_purple, upper_purple)   ##
+        mask_eroded_purple         = cv2.erode(mask_purple, None, iterations = 3)  ##
+        mask_eroded_dilated_purple = cv2.dilate(mask_eroded_purple, None, iterations = 10)  ##
+        
+        lower_green = np.array([50, 50, 50])
+        upper_green = np.array([70, 255, 255])
+        mask_green = cv2.inRange(hsv_image, lower_green, upper_green)   ##
+        mask_eroded_green         = cv2.erode(mask_green, None, iterations = 3)  ##
+        mask_eroded_dilated_green = cv2.dilate(mask_eroded_green, None, iterations = 10)  ##
         
         if toPrint:
             print 'hsv', hsv_image[240][320] # the center point hsv
             
-        self.showImageInCVWindow(cv_image, mask_eroded, mask_eroded_dilated)
-        image,contours,hierarchy = cv2.findContours(mask_eroded_dilated,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
-        return contours, mask_eroded_dilated
+        #self.showImageInCVWindow(cv_image, mask_eroded_green, mask_eroded_dilated_green)
+        image_purple,contours_purple,hierarchy_purple = cv2.findContours(mask_eroded_dilated_purple,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
+        image_green,contours_green,hierarchy_green = cv2.findContours(mask_eroded_dilated_green,cv2.RETR_LIST,cv2.CHAIN_APPROX_SIMPLE)
+        return contours_purple, mask_eroded_dilated_purple, contours_green, mask_eroded_dilated_green
 
     def showImageInCVWindow(self, cv_image, mask_erode_image, mask_image):
         # Bitwise-AND mask and original image

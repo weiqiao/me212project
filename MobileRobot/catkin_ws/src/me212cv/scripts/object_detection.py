@@ -116,12 +116,25 @@ def rosHSVProcessCallBack(msg):
 def HSVObjectDetection(cv_image, toPrint = True):
     hsv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
     
+    '''
     # define range of red color in HSV
     lower_red = np.array([170,50,50])
     upper_red = np.array([180,255,255])
 
     # Threshold the HSV image to get only red colors
     mask = cv2.inRange(hsv_image, lower_red, upper_red)   ##
+    '''
+    
+    
+    lower_green = np.array([50, 50, 50])
+    upper_green = np.array([70, 255, 255])
+    mask = cv2.inRange(hsv_image, lower_green, upper_green)   ##
+    '''
+    
+    lower_purple = np.array([120, 50, 50])
+    upper_purple = np.array([140, 255, 255])
+    mask = cv2.inRange(hsv_image, lower_purple, upper_purple)   ##
+    '''
     mask_eroded         = cv2.erode(mask, None, iterations = 3)  ##
     mask_eroded_dilated = cv2.dilate(mask_eroded, None, iterations = 10)  ##
     
@@ -143,15 +156,15 @@ def rosRGBDCallBack(rgb_data, depth_data):
 
     contours, mask_image = HSVObjectDetection(cv_image, toPrint = False)
 
-    print contours
+    # print contours
     for cnt in contours:
         xp,yp,w,h = cv2.boundingRect(cnt)
-        # print 'xp', xp, 'yp', yp
+        # print 'xp', xp, 'yp', yp, 'w', w, 'h',h
         
         # Get depth value from depth image, need to make sure the value is in the normal range 0.1-10 meter
-        if not math.isnan(cv_depthimage2[int(yp)][int(xp)]) and cv_depthimage2[int(yp)][int(xp)] > 0.1 and cv_depthimage2[int(yp)][int(xp)] < 10.0:
+        if not math.isnan(cv_depthimage2[int(yp)][int(xp)]) and cv_depthimage2[int(yp)][int(xp)] > 0.2 and cv_depthimage2[int(yp)][int(xp)] < 2.0:
             zc = cv_depthimage2[int(yp)][int(xp)]
-            # print 'zc', zc
+            print 'xp', xp, 'yp', yp, 'w', w, 'h',h, 'zc', zc
         else:
             continue
             
@@ -177,14 +190,14 @@ def showImageInCVWindow(cv_image, mask_erode_image, mask_image):
     cv2.line(cv_image, (325, 240), (315, 240), (255,0,0))
     
     # Show the images
-    '''
+    
     print 'open image'
-    cv2.imshow('OpenCV_Original', cv_image)
-    cv2.imshow('OpenCV_Mask_Erode', mask_erode_image)
-    cv2.imshow('OpenCV_Mask_Dilate', mask_image)
-    cv2.imshow('OpenCV_View', res)
+    #cv2.imshow('OpenCV_Original', cv_image)
+    #cv2.imshow('OpenCV_Mask_Erode', mask_erode_image)
+    #cv2.imshow('OpenCV_Mask_Dilate', mask_image)
+    #cv2.imshow('OpenCV_View', res)
     cv2.waitKey(3)
-    '''
+    
 
 # Create a pyramid using 4 triangles
 def showPyramid(xp, yp, zc, w, h):

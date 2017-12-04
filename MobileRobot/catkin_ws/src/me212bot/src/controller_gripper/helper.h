@@ -1,3 +1,5 @@
+#include <DualMC33926MotorShield.h>
+
 // Zack Bright        - zbright  _ mit _ edu,    Sept 2015
 // Daniel J. Gonzalez - dgonz    _ mit _ edu,    Sept 2015
 // Fangzhou Xia       - xiafz    _ mit _ edu,    Sept 2015
@@ -6,6 +8,8 @@
 
 #ifndef ArduinoLab2Helper_h
 #define ArduinoLab2Helper_h
+#include <Servo.h>
+#include <ctype.h>
 
 #include "Arduino.h"
 #include "DualMC33926MotorShield.h"
@@ -86,15 +90,15 @@ class PIController {
 class SerialComm {
   public:
     float desiredWV_R, desiredWV_L;
-    //float gripperCommand;
+    float desiredGripperPos;
   
-    SerialComm(): desiredWV_R(0), desiredWV_L(0){
+    SerialComm(): desiredWV_R(0), desiredWV_L(0), desiredGripperPos(120) {
         prevSerialTime = micros();
     }
     void receiveSerialData(){
         if (Serial.available() > 0) {
             String commandString = Serial.readStringUntil('\n');  // read a line
-            float command[2];
+            float command[3];
             for (int i = 0, indexPointer = 0; indexPointer != -1 ; i++ ) {
                 indexPointer = commandString.indexOf(',');
                 String tempString = commandString.substring(0, indexPointer);
@@ -103,15 +107,22 @@ class SerialComm {
             }
             desiredWV_R = command[0];
             desiredWV_L = command[1];
-            //gripperCommand = command[2];
+            desiredGripperPos = command[2];
+            Serial.print(desiredWV_R); Serial.print(",");
+            Serial.print(desiredWV_L); Serial.print(",");
+            //Serial.println('\n');
+            Serial.println(desiredGripperPos);
+
         }
     }
     void send(const RobotPose& robotPose) {
         unsigned long current_time = micros();
         if (current_time - prevSerialTime >= SERIAL_PERIOD_MICROS) {
+            /*
             Serial.print(robotPose.X, 6);   Serial.print(",");  //X 
             Serial.print(robotPose.Y, 6);   Serial.print(",");  //Y 
             Serial.println(robotPose.Th);                       //Th
+            */
             prevSerialTime = current_time;
         }
     }

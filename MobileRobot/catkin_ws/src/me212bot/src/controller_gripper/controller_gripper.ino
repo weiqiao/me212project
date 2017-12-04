@@ -6,6 +6,8 @@
 
 #include "Arduino.h"
 #include "helper.h"
+#include <SoftwareServo.h>
+
 
 EncoderMeasurement  encoder(26);      // encoder handler class, set the motor type 53 or 26 here
 RobotPose           robotPose;        // robot position and orientation calculation class
@@ -15,7 +17,13 @@ unsigned long       prevTime = 0;
 
 boolean usePathPlanner = true;
 
+SoftwareServo gripperServo; 
+
+
 void setup() {
+    
+    gripperServo.attach(2);  // attaches the servo on pin 9 to the servo object
+    //Serial.begin(9600);
     Serial.begin(115200);       // initialize Serial Communication
     encoder.init();  // connect with encoder
     wheelVelCtrl.init();        // connect with motor
@@ -42,6 +50,11 @@ void loop() {
         wheelVelCtrl.doPIControl("Left",  serialComm.desiredWV_L, encoder.v_L); 
         wheelVelCtrl.doPIControl("Right", serialComm.desiredWV_R, encoder.v_R);
 
+        int desiredGripperPos = (int) serialComm.desiredGripperPos;
+        //Serial.println(desiredGripperPos);
+        gripperServo.write(desiredGripperPos);
+        //gripperServo.write(0);
+        SoftwareServo::refresh();        
         prevTime = currentTime; // update time
     } 
 }
