@@ -140,6 +140,10 @@ cmd "6-run-navigation_restart" {
     exec = "rosrun me212bot navigation_restart.py";
     host = "localhost";
 }
+cmd "6-run-blanket" {
+    exec = "rosrun me212bot blanket.py";
+    host = "localhost";
+}
 
 
 script "run-navi1" {

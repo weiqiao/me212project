@@ -1,4 +1,43 @@
-purple box pixel range
+
+            '''
+            elif self.idx == 9:
+                # return left until see apriltag 4
+                
+                if robot_pose3d is not None:
+                    robot_position2d  = robot_pose3d[0:2]
+                    target_position2d = target_pose2d[0:2]
+                    
+                    robot_yaw    = tfm.euler_from_quaternion(robot_pose3d[3:7]) [2]
+                    robot_pose2d = robot_position2d + [robot_yaw]
+                # hard code: yaw should be in interval (0, 2.1)
+                if (robot_pose3d is None) or (self.detection_id != 4):
+                    print_id = 2001
+                    if print_id != self.print_id:
+                        self.print_id = print_id
+                        print 'Turn right slowly'
+                    wcv.desiredWV_R = 0
+                    wcv.desiredWV_L = 0.1
+                    self.velcmd_pub.publish(wcv) 
+                else:
+                    print_id = 2003
+                    if print_id != self.print_id:
+                        self.print_id = print_id
+                        print 'idx2 finished'
+                    wcv.desiredWV_R = 0
+                    wcv.desiredWV_L = 0
+                    self.velcmd_pub.publish(wcv) 
+                    arrived = True
+                if arrived:
+                    print 'old idx', self.idx, 'new idx', self.idx + 1
+                    self.idx = self.idx + 1
+                    arrived = False
+                    arrived_position = False
+                    rospy.sleep(1)            
+            '''
+
+
+
+urple box pixel range
 far
 [231 345] [376 333]
 [227 409] [383 403]

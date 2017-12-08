@@ -25,6 +25,8 @@ class ApriltagNavigator():
         self.velcmd_pub = rospy.Publisher('/cmdvel',WheelCmdVel,queue_size=1)
         self.idx6cnt=0
         self.stage9 = 0
+        self.bottle = 2
+
         
         self.thread = threading.Thread(target = self.navi_loop)
         self.thread.start()
@@ -35,8 +37,9 @@ class ApriltagNavigator():
         # use apriltag pose detection to find where is the robot
         # print data
         for detection in data.detections:
-            if (self.idx == 1 and detection.id == 6) or (self.idx == 2 and detection.id == 4) \
-                or (self.idx == 3 and detection.id == 4) or (self.idx == 4 and detection.id == 3) \
+            if (self.idx == 2 and detection.id == 4) \
+                or (self.idx == 3 and (detection.id == 12 or detection.id == 14 or detection.id == 16)) \
+                or (self.idx == 4 and detection.id == 3) \
                 or (self.idx == 5 and detection.id == 3) \
                 or (self.idx == 9 and detection.id == 4) \
                 or (self.idx == 10 and detection.id == 4):   # tag id is the correct one
@@ -47,6 +50,7 @@ class ApriltagNavigator():
                 poselist_base_map = transformPose(self.lr, poselist_base_tag,sourceFrame = '/apriltag', targetFrame = '/map')
                 
                 pubFrame(self.br, pose = poselist_base_map, frame_id = '/robot_base', parent_frame_id = '/map')
+
     
     def navi_loop(self):
         
@@ -73,67 +77,54 @@ class ApriltagNavigator():
             # 6 go to bottle
             if self.idx == 6:
                 print 'idx =', self.idx
-                '''
-                # right
-                if self.idx6cnt < 4:
-                    wcv.desiredWV_R  = 0.1
-                    wcv.desiredWV_L = 0.1
-                    self.idx6cnt = self.idx6cnt + 1
+                if self.bottle == 0:#left
+                    wcv.desiredWV_R  = -0.3
+                    wcv.desiredWV_L = -0.1
                     self.velcmd_pub.publish(wcv)  
-                else:
-                    self.idx = self.idx + 1
-                    rospy.sleep(3)
-                    
-                    wcv.desiredWV_R = 0
+                    rospy.sleep(2)
+                    wcv.desiredWV_R  = 0.3
                     wcv.desiredWV_L = 0
                     self.velcmd_pub.publish(wcv)  
-                '''
-                '''
-                # middle
-                if self.idx6cnt < 4:
+                    rospy.sleep(1.8)
+                    '''
                     wcv.desiredWV_R  = 0.05
                     wcv.desiredWV_L = 0
-                    self.idx6cnt = self.idx6cnt + 1
                     self.velcmd_pub.publish(wcv)  
-                elif self.idx6cnt==4:
-                    rospy.sleep(3)
+                    rospy.sleep(1)
+                    '''
                     wcv.desiredWV_R  = 0.1
                     wcv.desiredWV_L = 0.1
-                    self.idx6cnt = self.idx6cnt + 1
                     self.velcmd_pub.publish(wcv)  
-                else:
-                    self.idx = self.idx + 1
-                    rospy.sleep(1.8)
+                    
+                    rospy.sleep(3.8)
                     wcv.desiredWV_R = 0
                     wcv.desiredWV_L = 0
                     self.velcmd_pub.publish(wcv)  
-                '''
+                    self.idx = self.idx + 1
+                elif self.bottle == 1:
+                    # middle
+                    wcv.desiredWV_R  = 0.05
+                    wcv.desiredWV_L = 0
+                    self.velcmd_pub.publish(wcv)  
+                    rospy.sleep(3)
+                    wcv.desiredWV_R  = 0.05
+                    wcv.desiredWV_L = 0.05
+                    self.velcmd_pub.publish(wcv)  
+                    self.idx = self.idx + 1
+                    rospy.sleep(3.6)
+                    wcv.desiredWV_R = 0
+                    wcv.desiredWV_L = 0
+                    self.velcmd_pub.publish(wcv)  
+                elif self.bottle == 2:# right
+                    wcv.desiredWV_R  = 0.05
+                    wcv.desiredWV_L = 0.05
+                    self.velcmd_pub.publish(wcv)  
+                    self.idx = self.idx + 1
+                    rospy.sleep(6)
+                    wcv.desiredWV_R = 0
+                    wcv.desiredWV_L = 0
+                    self.velcmd_pub.publish(wcv)  
                 # left
-                wcv.desiredWV_R  = -0.3
-                wcv.desiredWV_L = -0.1
-                self.velcmd_pub.publish(wcv)  
-                rospy.sleep(2)
-                wcv.desiredWV_R  = 0.3
-                wcv.desiredWV_L = 0
-                self.velcmd_pub.publish(wcv)  
-                rospy.sleep(1.8)
-                '''
-                wcv.desiredWV_R  = 0.05
-                wcv.desiredWV_L = 0
-                self.velcmd_pub.publish(wcv)  
-                rospy.sleep(1)
-                '''
-                wcv.desiredWV_R  = 0.05
-                wcv.desiredWV_L = 0.05
-                self.velcmd_pub.publish(wcv)  
-                self.idx = self.idx + 1
-                rospy.sleep(7.5)
-                
-                wcv.desiredWV_R = 0
-                wcv.desiredWV_L = 0
-                self.velcmd_pub.publish(wcv)  
-
-            
             #7 close gripper
             elif self.idx == 7:
                 wcv.desiredGripperPos = girpperClose
@@ -146,72 +137,96 @@ class ApriltagNavigator():
             elif self.idx == 8:
                 # retreat
                 print 'idx =', self.idx
-                '''
-                if self.idx6cnt > 0:
+                if self.bottle == 0:#left
+                    if self.route_idx == 0:
+                        wcv.desiredWV_R = -0.3
+                        wcv.desiredWV_L = 0
+                        self.velcmd_pub.publish(wcv) 
+                        rospy.sleep(2)
+                        self.idx = self.idx + 1
+                        wcv.desiredWV_R = -0.1
+                        wcv.desiredWV_L = -0.1
+                        #self.velcmd_pub.publish(wcv) 
+                        rospy.sleep(2)# left
+                        wcv.desiredWV_R = 0
+                        wcv.desiredWV_L = 0
+                        self.velcmd_pub.publish(wcv) 
+                    elif self.route_idx == 1:
+                        wcv.desiredWV_R = -0.3
+                        wcv.desiredWV_L = 0
+                        self.velcmd_pub.publish(wcv) 
+                        rospy.sleep(2)
+                        self.idx = self.idx + 1
+                        wcv.desiredWV_R = -0.1
+                        wcv.desiredWV_L = -0.1
+                        #self.velcmd_pub.publish(wcv) 
+                        rospy.sleep(1)# left
+                        wcv.desiredWV_R = 0
+                        wcv.desiredWV_L = 0
+                        self.velcmd_pub.publish(wcv) 
+                elif self.bottle == 1:#middle
                     wcv.desiredWV_R = -0.3
                     wcv.desiredWV_L = -0.1
-                    self.idx6cnt = self.idx6cnt - 1
                     self.velcmd_pub.publish(wcv) 
-                else:
                     self.idx = self.idx + 1
-                    #rospy.sleep(4)
-                    #rospy.sleep(5) #middle
-                    rospy.sleep(6)# left
+                    rospy.sleep(5) #middle
                     wcv.desiredWV_R = 0
                     wcv.desiredWV_L = 0
                     self.velcmd_pub.publish(wcv) 
-                    
-                '''
-                wcv.desiredWV_R = -0.3
-                wcv.desiredWV_L = 0
-                self.velcmd_pub.publish(wcv) 
-                rospy.sleep(2)
-                self.idx = self.idx + 1
-                wcv.desiredWV_R = -0.1
-                wcv.desiredWV_L = -0.1
-                #self.velcmd_pub.publish(wcv) 
-                rospy.sleep(2)# left
-                wcv.desiredWV_R = 0
-                wcv.desiredWV_L = 0
-                self.velcmd_pub.publish(wcv) 
+                elif self.bottle == 2:#right
+                    wcv.desiredWV_R = -0.3
+                    wcv.desiredWV_L = -0.1
+                    self.velcmd_pub.publish(wcv) 
+                    self.idx = self.idx + 1
+                    rospy.sleep(4)
+                    wcv.desiredWV_R = 0
+                    wcv.desiredWV_L = 0
+                    self.velcmd_pub.publish(wcv) 
 
-            
             elif self.idx == 9:
                 # turn right
                 print 'idx =', self.idx
-                if self.idx6cnt <4:
+                if self.bottle == 0:#left
+                    if self.route_idx == 0:
+                        wcv.desiredWV_R = 0
+                        wcv.desiredWV_L = 0.2
+                        self.velcmd_pub.publish(wcv) 
+                        self.idx = self.idx + 1
+                        rospy.sleep(3) # left
+                        wcv.desiredWV_R = 0
+                        wcv.desiredWV_L = 0
+                        self.velcmd_pub.publish(wcv) 
+                    elif self.route_idx == 1:
+                        wcv.desiredWV_R = 0
+                        wcv.desiredWV_L = 0.2
+                        self.velcmd_pub.publish(wcv) 
+                        rospy.sleep(3) # left
+                        if self.detection_id != 4:
+                            wcv.desiredWV_R = 0
+                            wcv.desiredWV_L = 0.05
+                            self.velcmd_pub.publish(wcv) 
+                        else:
+                            self.idx = self.idx + 1
+                elif self.bottle == 1:#middle
                     wcv.desiredWV_R = 0
                     wcv.desiredWV_L = 0.2
-                    self.idx6cnt = self.idx6cnt + 1
                     self.velcmd_pub.publish(wcv) 
-                else:
                     self.idx = self.idx + 1
-                    #rospy.sleep(5)
-                    #rospy.sleep(5.5) # middle
-                    rospy.sleep(3) # left
+                    rospy.sleep(5.5) # middle
                     wcv.desiredWV_R = 0
                     wcv.desiredWV_L = 0
                     self.velcmd_pub.publish(wcv) 
-        
-            elif self.idx == 10:
-                # go straight
-                
-                print 'idx =', self.idx
-                if self.idx6cnt > 0:
-                    wcv.desiredWV_R = 0.3
-                    wcv.desiredWV_L = 0.3
-                    self.idx6cnt = self.idx6cnt - 1
+                elif self.bottle == 2:#right
+                    wcv.desiredWV_R = 0
+                    wcv.desiredWV_L = 0.2
                     self.velcmd_pub.publish(wcv) 
-                else:
                     self.idx = self.idx + 1
-                    rospy.sleep(4.5)
+                    rospy.sleep(5)
                     wcv.desiredWV_R = 0
                     wcv.desiredWV_L = 0
                     self.velcmd_pub.publish(wcv) 
-
-
             # start at 5
-            elif (self.idx == 5 and self.detection_id == 3) or (self.idx == 100 and self.detection_id == 4):
+            elif (self.idx == 5 and self.detection_id == 3) or (self.idx == 10 and self.detection_id == 4):
                 if robot_pose3d is None:
                     print_id = 0
                     if print_id != self.print_id:

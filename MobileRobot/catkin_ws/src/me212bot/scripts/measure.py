@@ -67,12 +67,12 @@ class ApriltagMeasure():
             heading_err_cross = cross2d( robot_heading_vec, pos_delta / np.linalg.norm(pos_delta) )
                 
             
-            print 'robot_position2d', robot_position2d
-            # print 'target_position2d', target_position2d
-            # print 'pos_delta', pos_delta
-            print 'robot_yaw', robot_yaw
-            # print 'norm delta', np.linalg.norm( pos_delta ), 'diffrad', diffrad(robot_yaw, target_pose2d[2])
-            # print 'heading_err_cross', heading_err_cross
+            #print 'robot_position2d', robot_position2d
+            ## print 'target_position2d', target_position2d
+            ## print 'pos_delta', pos_delta
+            #print 'robot_yaw', robot_yaw
+            ## print 'norm delta', np.linalg.norm( pos_delta ), 'diffrad', diffrad(robot_yaw, target_pose2d[2])
+            ## print 'heading_err_cross', heading_err_cross
                 
             '''
             if arrived or (np.linalg.norm( pos_delta ) < 0.08 and np.fabs(diffrad(robot_yaw, target_pose2d[2]))<0.05) :
